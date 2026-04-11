@@ -1,0 +1,3 @@
+Reinforcement learning is a paradigm where an agent learns by trial and error using rewards and penalties from its environment.
+A neural network is a computing model inspired by biological neurons, used for pattern recognition and prediction.
+Gradient descent is an optimization algorithm that minimizes a loss function by adjusting parameters in the direction of steepest descent.

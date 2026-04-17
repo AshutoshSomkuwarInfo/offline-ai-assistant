@@ -18,7 +18,8 @@ def analyze_intent(query: str) -> QueryIntent:
     personal = bool(
         re.search(
             r"\b(do i have|my |mine\b|show my|find my|remind me|"
-            r"meeting|calendar|schedule|photos?\b|trip\b|emails?\b|deadline)\b",
+            r"meeting|calendar|schedule|photos?\b|trip\b|emails?\b|gmail|inbox|"
+            r"google cal|deadline)\b",
             q,
         )
     )

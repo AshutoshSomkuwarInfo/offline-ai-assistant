@@ -7,7 +7,9 @@ DEFAULT_MODEL = "phi3"
 
 def generate_response(prompt: str, model: Optional[str] = None) -> str:
     """
-    On-device SLM via Ollama (Phi-3 / LLaMA / Mistral — pull the model you use locally).
+    On-device SLM via Ollama — runs offline after ``ollama pull <model>``; no cloud
+    inference. General knowledge comes from the model weights; optional local text
+    (FAISS) only augments answers when the prompt includes retrieved lines.
     Set OLLAMA_MODEL to override the default.
     """
     name = model or os.environ.get("OLLAMA_MODEL", DEFAULT_MODEL)

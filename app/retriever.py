@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import numpy as np
 import faiss
 from sentence_transformers import SentenceTransformer
@@ -8,9 +9,16 @@ from typing import Optional
 from app.intent import QueryIntent
 
 
-def _read_lines(path: str) -> list[str]:
+def _read_indexable_lines(path: str) -> list[str]:
+    """Non-empty lines for embedding; skip # comments (add notes without indexing)."""
+    out: list[str] = []
     with open(path, "r", encoding="utf-8") as f:
-        return [line.strip() for line in f if line.strip()]
+        for line in f:
+            line = line.strip()
+            if not line or line.startswith("#"):
+                continue
+            out.append(line)
+    return out
 
 
 def _build_index(embeddings: np.ndarray) -> faiss.IndexFlatL2:
@@ -24,8 +32,10 @@ def _build_index(embeddings: np.ndarray) -> faiss.IndexFlatL2:
 
 class ContextRetrievalEngine:
     """
-    FAISS-backed retrieval over a general-knowledge corpus and a personal-context corpus
-    (emails, files, calendar-style lines — as chunked text lines in this prototype).
+    FAISS-backed retrieval over optional local text (general + personal).
+
+    Offline general Q&A does not require a general corpus: the on-device SLM answers
+    from its weights. Indexed ``general`` lines are optional RAG (notes, book excerpts).
     """
 
     def __init__(self, embedding_model: str = "all-MiniLM-L6-v2"):
@@ -36,16 +46,36 @@ class ContextRetrievalEngine:
         self._personal_index: Optional[faiss.IndexFlatL2] = None
 
     def load_general_knowledge(self, file_path: str) -> None:
-        self.general_docs = _read_lines(file_path)
-        if not self.general_docs:
-            raise ValueError(f"No documents in general knowledge file: {file_path}")
+        self.load_general_sources([file_path])
+
+    def load_general_sources(self, file_paths: list[str]) -> None:
+        docs: list[str] = []
+        for p in file_paths:
+            if not p or not os.path.isfile(p):
+                continue
+            docs.extend(_read_indexable_lines(p))
+        self.general_docs = docs
+        if not docs:
+            self._general_index = None
+            return
         emb = np.array(self.model.encode(self.general_docs))
         self._general_index = _build_index(emb)
 
     def load_personal_context(self, file_path: str) -> None:
-        self.personal_docs = _read_lines(file_path)
-        if not self.personal_docs:
-            raise ValueError(f"No documents in personal context file: {file_path}")
+        self.load_personal_sources([file_path])
+
+    def load_personal_sources(self, file_paths: list[str]) -> None:
+        docs: list[str] = []
+        for p in file_paths:
+            if not p or not os.path.isfile(p):
+                continue
+            docs.extend(_read_indexable_lines(p))
+        if not docs:
+            docs = [
+                "(No personal data yet. Add data/personal_context.txt and/or run "
+                "python -m app.google_sync to index Gmail, Calendar, and Photos metadata.)"
+            ]
+        self.personal_docs = docs
         emb = np.array(self.model.encode(self.personal_docs))
         self._personal_index = _build_index(emb)
 

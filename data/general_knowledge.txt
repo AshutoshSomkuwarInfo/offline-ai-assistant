@@ -1,3 +1,9 @@
+# Optional offline RAG for general topics: one fact or paragraph per line below.
+# You do NOT need this file for general Q&A — the local SLM (Ollama) answers from its
+# weights with no internet. Add lines here to ground answers in your own notes, slides,
+# or textbook excerpts (e.g. export lecture notes as plain text).
+# Extra files: data/general_knowledge_extra.txt and data/general/*.txt are also loaded.
+
 Reinforcement learning is a paradigm where an agent learns by trial and error using rewards and penalties from its environment.
 A neural network is a computing model inspired by biological neurons, used for pattern recognition and prediction.
 Gradient descent is an optimization algorithm that minimizes a loss function by adjusting parameters in the direction of steepest descent.
